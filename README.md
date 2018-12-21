@@ -1,5 +1,6 @@
 # Android
 Android 加固应用Hook方式-Frida
+```
 Java.perform(function () {
     var application = Java.use('android.app.Application');
 
@@ -19,9 +20,9 @@ Java.perform(function () {
 
     }
 });
-
+```
 列出加载的类
-
+```
 Java.enumerateLoadedClasses(
   {
   "onMatch": function(className){ 
@@ -30,5 +31,5 @@ Java.enumerateLoadedClasses(
   "onComplete":function(){}
   }
 )
-
+```
 
