@@ -33,8 +33,8 @@ Java.enumerateLoadedClasses(
 )
 ```
 
-#Hook 动态加载类
-##获取构造函数的参数
+# Hook 动态加载类
+## 获取构造函数的参数
 ```
 Java.perform(function(){
         //创建一个DexClassLoader的wapper
@@ -52,7 +52,7 @@ Java.perform(function(){
 
 });
 ```
-##获取动态加载的类
+## 获取动态加载的类
 ```
 Java.perform(function(){
         var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
@@ -77,7 +77,7 @@ Java.perform(function(){
         }
 });
 ```
-##通过Java.cast处理泛型方法(JAVA中Class<?>表示泛型)，在调用动态加载方法
+## 通过Java.cast处理泛型方法(JAVA中Class<?>表示泛型)，在调用动态加载方法
 ```
 Java.perform(function(){
         var hookClass = undefined;
@@ -111,7 +111,7 @@ Java.perform(function(){
 
 });
 ```
-###利用getDeclaredConstructor()获取具有指定参数列表构造函数的Constructor 并实例化
+### 利用getDeclaredConstructor()获取具有指定参数列表构造函数的Constructor 并实例化
 ```
 Java.perform(function(){
         var hookClass = undefined;
@@ -149,7 +149,7 @@ console.log("-------------------------------------------------------------------
         }
 });
 ```
-###利用getDeclaredMethods()，获取本类中的所有方法
+### 利用getDeclaredMethods()，获取本类中的所有方法
 ```
 Java.perform(function(){
         var hookClass = undefined;
@@ -193,7 +193,7 @@ Java.perform(function(){
         }
 });
 ```
-##调用Method.invoke()去执行方法(invoke方法的第一个参数是执行这个方法的对象实例，第二个参数是带入的实际值数组，返回值是Object，也既是该方法执行后的返回值)
+## 调用Method.invoke()去执行方法(invoke方法的第一个参数是执行这个方法的对象实例，第二个参数是带入的实际值数组，返回值是Object，也既是该方法执行后的返回值)
 ```
 f.invoke(instance,Array);
 ```
