@@ -33,3 +33,169 @@ Java.enumerateLoadedClasses(
 )
 ```
 
+#Hook 动态加载类
+##获取构造函数的参数
+```
+Java.perform(function(){
+        //创建一个DexClassLoader的wapper
+        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
+        //hook 它的构造函数$init，我们将它的四个参数打印出来看看。
+        dexclassLoader.$init.implementation = function(dexPath,optimizedDirectory,librarySearchPath,parent){
+            console.log("dexPath:"+dexPath);
+            console.log("optimizedDirectory:"+optimizedDirectory);
+            console.log("librarySearchPath:"+librarySearchPath);
+            console.log("parent:"+parent);
+            //不破换它原本的逻辑，我们调用它原本的构造函数。
+          this.$init(dexPath,optimizedDirectory,librarySearchPath,parent);
+        }
+        console.log("down!");
+
+});
+```
+##获取动态加载的类
+```
+Java.perform(function(){
+        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
+        var hookClass = undefined;
+        var ClassUse = Java.use("java.lang.Class");
+
+        dexclassLoader.loadClass.overload('java.lang.String').implementation = function(name){
+           //定义一个String变量，指定我们需要的类
+            var hookname = "cn.chaitin.geektan.crackme.MainActivityPatch";
+            //直接调用第二个重载方法，跟原本的逻辑相同。
+            var result = this.loadClass(name,false);
+            //如果loadClass的name参数和我们想要hook的类名相同
+            if(name === hookname){
+                //则拿到它的值
+                hookClass = result;
+                //打印hookClass变量的值
+                console.log(hookClass);
+                send(hookClass);
+                return result;
+            }
+            return result;
+        }
+});
+```
+##通过Java.cast处理泛型方法(JAVA中Class<?>表示泛型)，在调用动态加载方法
+```
+Java.perform(function(){
+        var hookClass = undefined;
+        var ClassUse = Java.use("java.lang.Class");
+        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
+        var constructorclass = Java.use("java.lang.reflect.Constructor");
+        var objectclass= Java.use("java.lang.Object");
+        dexclassLoader.loadClass.overload('java.lang.String').implementation = function(name){
+            var hookname = "cn.chaitin.geektan.crackme.MainActivityPatch";
+            var result = this.loadClass(name,false);
+
+            if(name == hookname){
+                var hookClass = result;
+                console.log("------------------------------CAST--------------------------------")
+                //类型转换
+                var hookClassCast = Java.cast(hookClass,ClassUse);
+                //调用getMethods()获取类下的所有方法
+                var methods = hookClassCast.getMethods();
+                console.log(methods);
+                console.log("-----------------------------NOT CAST-----------------------------")
+                //未进行类型转换，看看能否调用getMethods()方法
+                var methodtest = hookClass.getMethods();
+                console.log(methodtest);
+                console.log("---------------------OVER------------------------")
+                return result;
+
+            }
+            return result;
+        }
+
+
+});
+```
+###利用getDeclaredConstructor()获取具有指定参数列表构造函数的Constructor 并实例化
+```
+Java.perform(function(){
+        var hookClass = undefined;
+        var ClassUse = Java.use("java.lang.Class");
+        var objectclass= Java.use("java.lang.Object");
+        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
+        var orininclass = Java.use("cn.chaitin.geektan.crackme.MainActivity");
+        var Integerclass = Java.use("java.lang.Integer");
+        //实例化MainActivity对象
+        var mainAc = orininclass.$new();
+
+
+        dexclassLoader.loadClass.overload('java.lang.String').implementation = function(name){
+            var hookname = "cn.chaitin.geektan.crackme.MainActivityPatch";
+            var result = this.loadClass(name,false);
+
+            if(name == hookname){
+                var hookClass = result;
+                var hookClassCast = Java.cast(hookClass,ClassUse);
+                console.log("-----------------------------BEGIN-------------------------------------");
+                //获取构造器
+                var ConstructorParam =Java.array('Ljava.lang.Object;',[objectclass.class]);
+                var Constructor = hookClassCast.getDeclaredConstructor(ConstructorParam);
+                console.log("Constructor:"+Constructor);
+                console.log("orinin:"+mainAc);
+                //实例化，newInstance的参数也是Ljava.lang.Object;
+                var instance = Constructor.newInstance([mainAc]);
+                console.log("patchAc:"+instance);
+                send(instance);
+console.log("--------------------------------------------------------------------");
+                return result;
+
+            }
+            return result;
+        }
+});
+```
+###利用getDeclaredMethods()，获取本类中的所有方法
+```
+Java.perform(function(){
+        var hookClass = undefined;
+        var ClassUse = Java.use("java.lang.Class");
+        var objectclass= Java.use("java.lang.Object");
+        var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
+        var orininclass = Java.use("cn.chaitin.geektan.crackme.MainActivity");
+        var Integerclass = Java.use("java.lang.Integer");
+        //实例化MainActivity对象
+        var mainAc = orininclass.$new();
+
+
+        dexclassLoader.loadClass.overload('java.lang.String').implementation = function(name){
+            var hookname = "cn.chaitin.geektan.crackme.MainActivityPatch";
+            var result = this.loadClass(name,false);
+
+            if(name == hookname){
+                var hookClass = result;
+                var hookClassCast = Java.cast(hookClass,ClassUse);
+                console.log("-----------------------------BEGIN-------------------------------------");
+                //获取构造器
+                var ConstructorParam =Java.array('Ljava.lang.Object;',[objectclass.class]);
+                var Constructor = hookClassCast.getDeclaredConstructor(ConstructorParam);
+                console.log("Constructor:"+Constructor);
+                console.log("orinin:"+mainAc);
+                //实例化，newInstance的参数也是Ljava.lang.Object;
+                var instance = Constructor.newInstance([mainAc]);
+                console.log("MainActivityPatchInstance:"+instance);
+                send(instance);
+                console.log("----------------------------Methods---------------------------------");
+                var func = hookClassCast.getDeclaredMethods();
+                console.log(func);
+                console.log("--------------------------Need Method---------------------------------");
+                console.log(func[0]);
+                var f = func[0];
+                console.log("---------------------------- OVER---------------------------------");
+                return result;
+
+            }
+            return result;
+        }
+});
+```
+##调用Method.invoke()去执行方法(invoke方法的第一个参数是执行这个方法的对象实例，第二个参数是带入的实际值数组，返回值是Object，也既是该方法执行后的返回值)
+```
+f.invoke(instance,Array);
+```
+
+
