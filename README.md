@@ -324,3 +324,24 @@ var SQLiteDatabase = Java.use('com.tencent.wcdb.database.SQLiteDatabase');
     };
     
 ```
+## Hook JNI Native GetStringUTFChars  
+```
+function hook_native_GetStringUTFChars() {
+    var env = Java.vm.getEnv();
+    var handlePointer = Memory.readPointer(env.handle);
+    console.log("env handle: " + handlePointer);
+    var GetStringUTFCharsPtr = Memory.readPointer(handlePointer.add(0x2A4));
+    console.log("GetStringUTFCharsPtr addr: " + GetStringUTFCharsPtr);
+    Interceptor.attach(GetStringUTFCharsPtr, {
+        onEnter: function (args) {
+            var str = "";
+            Java.perform(function () {
+                str = Java.cast(args[1], Java.use('java.lang.String'));
+            });
+            console.log("GetStringUTFChars: " + str);
+
+        }
+    });
+}
+```  
+
