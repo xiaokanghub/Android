@@ -344,4 +344,75 @@ function hook_native_GetStringUTFChars() {
     });
 }
 ```  
+## 主动弹窗
+```
+Java.perform(function() {
+    var System = Java.use('java.lang.System');
+    var ActivityThread = Java.use("android.app.ActivityThread");
+    var AlertDialogBuilder = Java.use("android.app.AlertDialog$Builder");
+    var DialogInterfaceOnClickListener = Java.use('android.content.DialogInterface$OnClickListener');
+
+    Java.use("android.app.Activity").onCreate.overload("android.os.Bundle").implementation = function(savedInstanceState) {
+        var currentActivity = this;
+
+        // Get Main Activity
+        var application = ActivityThread.currentApplication();
+        var launcherIntent = application.getPackageManager().getLaunchIntentForPackage(application.getPackageName());
+        var launchActivityInfo = launcherIntent.resolveActivityInfo(application.getPackageManager(), 0);
+
+        // Alert Will Only Execute On Main Package Activity Creation
+        console.log(this.getComponentName().getClassName())
+        /**
+         * non protective application
+         * if (launchActivityInfo === this.getComponentName().getClassName()) {
+         *     ...
+         * }
+         */
+
+        if (this.getComponentName().getClassName() === "com.xxx") {
+
+            var alert = AlertDialogBuilder.$new(this);
+            var jString = Java.use('java.lang.String');
+            var CharSequence = Java.use('java.lang.CharSequence');
+            var charSequence = Java.cast(jString.$new("What you want to do now?"), CharSequence);
+            var charSequence1 = Java.cast(jString.$new("Dismiss"), CharSequence);
+            var charSequence2 = Java.cast(jString.$new("Force Close!"), CharSequence);
+            alert.setMessage(charSequence);
+
+            alert.setPositiveButton(charSequence1, Java.registerClass({
+                name: 'il.co.realgame.OnClickListenerPositive',
+                implements: [DialogInterfaceOnClickListener],
+                methods: {
+                    getName: function() {
+                        return 'OnClickListenerPositive';
+                    },
+                    onClick: function(dialog, which) {
+                        // Dismiss
+                        dialog.dismiss();
+                    }
+                }
+            }).$new());
+
+            alert.setNegativeButton(charSequence2, Java.registerClass({
+                name: 'il.co.realgame.OnClickListenerNegative',
+                implements: [DialogInterfaceOnClickListener],
+                methods: {
+                    getName: function() {
+                        return 'OnClickListenerNegative';
+                    },
+                    onClick: function(dialog, which) {
+                        // Close Application
+                        //currentActivity.finish();
+                        System.exit(0);
+                    }
+                }
+            }).$new());
+
+            // Create Alert
+            alert.create().show();
+        }
+        return this.onCreate.overload("android.os.Bundle").call(this, savedInstanceState);
+    };
+});
+```
 
