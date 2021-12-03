@@ -417,6 +417,38 @@ Java.perform(function() {
 ```
 # Hook prettyMethod
 ```javascript
+const STD_STRING_SIZE = 3 * Process.pointerSize;
+class StdString {
+    constructor() {
+        this.handle = Memory.alloc(STD_STRING_SIZE);
+    }
+
+    dispose() {
+        const [data, isTiny] = this._getData();
+        if (!isTiny) {
+            Java.api.$delete(data);
+        }
+    }
+
+    disposeToString() {
+        const result = this.toString();
+        this.dispose();
+        return result;
+    }
+
+    toString() {
+        const [data] = this._getData();
+        return data.readUtf8String();
+    }
+
+    _getData() {
+        const str = this.handle;
+        const isTiny = (str.readU8() & 1) === 0;
+        const data = isTiny ? str.add(1) : str.add(2 * Process.pointerSize).readPointer();
+        return [data, isTiny];
+    }
+}
+
 function prettyMethod(method_id, withSignature) {
     const result = new StdString();
     Java.api['art::ArtMethod::PrettyMethod'](result, method_id, withSignature ? 1 : 0);
