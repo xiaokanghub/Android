@@ -415,4 +415,11 @@ Java.perform(function() {
     };
 });
 ```
-
+# Hook prettyMethod
+```
+function prettyMethod(method_id, withSignature) {
+    const result = new StdString();
+    Java.api['art::ArtMethod::PrettyMethod'](result, method_id, withSignature ? 1 : 0);
+    return result.disposeToString();
+}
+```
