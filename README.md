@@ -1,6 +1,6 @@
 # Android
 Android 加固应用Hook方式-Frida
-```
+```javascript
 Java.perform(function () {
     var application = Java.use('android.app.Application');
 
@@ -22,7 +22,7 @@ Java.perform(function () {
 });
 ```
 列出加载的类
-```
+```javascript
 Java.enumerateLoadedClasses(
   {
   "onMatch": function(className){ 
@@ -35,7 +35,7 @@ Java.enumerateLoadedClasses(
 
 # Hook 动态加载类
 ## 获取构造函数的参数
-```
+```javascript
 Java.perform(function(){
         //创建一个DexClassLoader的wapper
         var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
@@ -53,7 +53,7 @@ Java.perform(function(){
 });
 ```
 ## 获取动态加载的类
-```
+```javascript
 Java.perform(function(){
         var dexclassLoader = Java.use("dalvik.system.DexClassLoader");
         var hookClass = undefined;
@@ -78,7 +78,7 @@ Java.perform(function(){
 });
 ```
 ## 通过Java.cast处理泛型方法(JAVA中Class<?>表示泛型)，在调用动态加载方法
-```
+```javascript
 Java.perform(function(){
         var hookClass = undefined;
         var ClassUse = Java.use("java.lang.Class");
@@ -112,7 +112,7 @@ Java.perform(function(){
 });
 ```
 ### 利用getDeclaredConstructor()获取具有指定参数列表构造函数的Constructor 并实例化
-```
+```javascript
 Java.perform(function(){
         var hookClass = undefined;
         var ClassUse = Java.use("java.lang.Class");
@@ -150,7 +150,7 @@ console.log("-------------------------------------------------------------------
 });
 ```
 ### 利用getDeclaredMethods()，获取本类中的所有方法
-```
+```javascript
 Java.perform(function(){
         var hookClass = undefined;
         var ClassUse = Java.use("java.lang.Class");
@@ -199,7 +199,7 @@ f.invoke(instance,Array);
 ```
 
 ## read-std-string
-```
+```javascript
 /*
  * Note: Only compatible with libc++, though libstdc++'s std::string is a lot simpler.
  */
@@ -215,7 +215,7 @@ function readStdString (str) {
 ```
 
 ## whereisnative
-```
+```javascript
 Java.perform(function() {
 
     var SystemDef = Java.use('java.lang.System');
@@ -275,13 +275,13 @@ Java.perform(function() {
 ```
 
 ## Non-ASCII
-```
+```java
  int ֏(int x) {
         return x + 100;
     }
 ```
 甚至有一些不可视, 所以可以先编码打印出来, 再用编码后的字符串去 hook.<\br>
-```
+```javascript
 Java.perform(
         function x() {
 
@@ -306,7 +306,7 @@ Java.perform(
 ```
 
 ## Hook 数据库
-```
+```javascript
 var SQLiteDatabase = Java.use('com.tencent.wcdb.database.SQLiteDatabase');
     var Set = Java.use("java.util.Set");
     var ContentValues = Java.use("android.content.ContentValues");
@@ -325,7 +325,7 @@ var SQLiteDatabase = Java.use('com.tencent.wcdb.database.SQLiteDatabase');
     
 ```
 ## Hook JNI Native GetStringUTFChars  
-```
+```javascript
 function hook_native_GetStringUTFChars() {
     var env = Java.vm.getEnv();
     var handlePointer = Memory.readPointer(env.handle);
@@ -345,7 +345,7 @@ function hook_native_GetStringUTFChars() {
 }
 ```  
 ## 主动弹窗
-```
+```javascript
 Java.perform(function() {
     var System = Java.use('java.lang.System');
     var ActivityThread = Java.use("android.app.ActivityThread");
@@ -416,7 +416,7 @@ Java.perform(function() {
 });
 ```
 # Hook prettyMethod
-```
+```javascript
 function prettyMethod(method_id, withSignature) {
     const result = new StdString();
     Java.api['art::ArtMethod::PrettyMethod'](result, method_id, withSignature ? 1 : 0);
