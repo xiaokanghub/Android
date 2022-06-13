@@ -460,7 +460,7 @@ function prettyMethod(method_id, withSignature) {
 `
 result = pthread_create(v102, 0LL, sub_F74, 0LL);
 `
-```
+```javascript
 function hook_pthread_create(){
     var pt_create_func = Module.findExportByName(null,'pthread_create');
     var detect_frida_loop_addr = null;
