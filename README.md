@@ -598,3 +598,44 @@ if (arch){
     });
 }
 ```
+# USB Debugging Bypass
+```javascript
+function USBDebuggingBypass() {
+	var Secure = Java.use('android.provider.Settings$Secure');
+	var System = Java.use('android.provider.Settings$System');
+	var Global = Java.use('android.provider.Settings$Global');
+	
+	Secure.getInt.overload('android.content.ContentResolver', 'java.lang.String', 'int').implementation = function(arg1, arg2, arg3) {
+		if(arg2.indexOf('adb_enabled') !== -1) {
+			console.warn('[!] USB Debugging Check Bypass !');
+			return 0;
+		} else {
+			return this.getInt(arg1, arg2, arg3);
+		}
+	}
+	System.getInt.overload('android.content.ContentResolver', 'java.lang.String', 'int').implementation = function(arg1, arg2, arg3) {
+		if(arg2.indexOf('adb_enabled') !== -1) {
+			console.warn('[!] USB Debugging Check Bypass !');
+			return 0;
+		} else {
+			return this.getInt(arg1, arg2, arg3);
+		}
+	}
+	Global.getInt.overload('android.content.ContentResolver', 'java.lang.String', 'int').implementation = function(arg1, arg2, arg3) {
+		if(arg2.indexOf('adb_enabled') !== -1) {
+			console.warn('[!] USB Debugging Check Bypass !');
+			return 0;
+		} else {
+			return this.getInt(arg1, arg2, arg3);
+		}
+	}
+
+	var Debug = Java.use('android.os.Debug');
+	Debug.isDebuggerConnected.implementation = function() {
+		console.warn('[*] Debug.isDebuggerConnected() Bypass !');
+
+		return false;
+	}
+}
+
+```
