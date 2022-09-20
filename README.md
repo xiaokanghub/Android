@@ -639,3 +639,120 @@ function USBDebuggingBypass() {
 }
 
 ```
+# hook read & open
+```javascript
+var TraceSysFD = {};
+function prettyLog(str) {
+    console.log("---------------------------\n" + str);
+}
+
+Interceptor.attach(Module.findExportByName(null, "read"), {
+    // fd, buff, len
+    onEnter: function (args) {
+        var bfr = args[1], sz = args[2].toInt32();
+        var path = (TraceSysFD["fd-" + args[0].toInt32()] != null) ? TraceSysFD["fd-" + args[0].toInt32()] : "[unknow path]";
+        prettyLog("[Libc::read] Read FD (" + path + "," + bfr + "," + sz + ")\n");
+    },
+    onLeave: function (ret) {
+    }
+});
+Interceptor.attach(Module.findExportByName(null, "open"), {
+    // path, flags, mode
+    onEnter: function (args) {
+        this.path = args[0].readCString();
+    },
+    onLeave: function (ret) {
+        TraceSysFD["fd-" + ret.toInt32()] = this.path;
+        prettyLog("[Libc::open] Open file '" + this.path + "' (fd: " + ret.toInt32() + ")");
+    }
+});
+
+```
+
+# hook readlink
+```javascript
+var aaa,bbb,ccc;
+Interceptor.attach(Module.findExportByName(null, "readlink"),{
+    onEnter: function(args){
+        aaa = args[0];
+        bbb = args[1];
+        ccc = args[2];
+        },
+    onLeave: function(retval){
+        // console.log('\nreadlink(' + 's1="' + aaa.readCString() + '"' + ', s2="' + bbb.readCString() + '"' + ', s3="' + ccc + '"' + ')');
+        if(bbb.readCString().indexOf("frida")!==-1 ||
+            bbb.readCString().indexOf("gum-js-loop")!==-1||
+            bbb.readCString().indexOf("gmain")!==-1 ||
+            bbb.readCString().indexOf("tmp")!==-1 ||
+            bbb.readCString().indexOf("linjector")!==-1){
+            console.log('\nreadlink(' + 's1="' + aaa.readCString() + '"' + ', s2="' + bbb.readCString() + '"' + ', s3="' + ccc + '"' + ')');
+            bbb.writeUtf8String("/system/framework/boot.art")
+            //console.log("replce with: "+bbb.readCString())
+            retval.replace(0x1A)
+            //console.log("retval: "+retval)
+        }
+    }
+});
+
+```
+
+# hook strstr
+```javascript
+var strstr = Module.findExportByName(null, "strstr");
+if (null !== strstr) {
+    Interceptor.attach(strstr, {
+        onEnter: function (args) {
+            this.frida = Boolean(0);
+
+            this.haystack = args[0];
+            this.needle = args[1];
+
+            if (this.haystack.readCString() !== null && this.needle.readCString() !== null) {
+                if (this.haystack.readCString().indexOf("frida") !== -1 ||
+                    this.needle.readCString().indexOf("frida") !== -1 ||
+                    this.haystack.readCString().indexOf("gum-js-loop") !== -1 ||
+                    this.needle.readCString().indexOf("gum-js-loop") !== -1 ||
+                    this.haystack.readCString().indexOf("gmain") !== -1 ||
+                    this.needle.readCString().indexOf("gmain") !== -1 ||
+                    this.haystack.readCString().indexOf("linjector") !== -1 ||
+                    this.needle.readCString().indexOf("linjector") !== -1) {
+                    this.frida = Boolean(1);
+                }
+            }
+        },
+        onLeave: function (retval) {
+            if (this.frida) {
+                retval.replace(ptr("0x0"));
+            }
+
+        }
+    })
+    console.log("anti anti-frida");
+}
+
+```
+
+# hook strcmp
+```javascript
+var strcmp = Module.findExportByName(null,"strcmp");
+console.log("find strcmp:",strcmp);
+Interceptor.attach(strcmp, {
+    onEnter: function (args) {
+            if(ptr(args[1]).readCString().indexOf("frida")>=0){
+                // ptr(args[1]).writeUtf8String('fuck u');
+                console.log("[*] strcmp (" + ptr(args[0]).readCString() + "," + ptr(args[1]).readCString()+")");
+                
+                this.ishack = true;
+            }
+        
+    },
+    onLeave: function(retval){
+        if(this.ishack){
+            retval.replace(ptr("0x0"))
+            console.log("the ishack's result :",retval);
+        }
+        
+    }
+});
+
+```
